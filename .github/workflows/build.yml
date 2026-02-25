@@ -18,10 +18,10 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Set up Flutter 3.13.6
+      - name: Set up Flutter 3.19.6
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.6'
+          flutter-version: '3.19.6'
           channel: 'stable'
 
       # Tell the runner to look inside the 'budget' folder
