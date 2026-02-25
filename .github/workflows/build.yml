@@ -24,16 +24,28 @@ jobs:
           flutter-version: '3.19.6'
           channel: 'stable'
 
-      # Tell the runner to look inside the 'budget' folder
       - name: Install dependencies
         working-directory: ./budget
         run: flutter pub get
+
+      # --- NEW STEPS ADDED HERE ---
+      - name: Decode Keystore
+        working-directory: ./budget/android/app
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > upload-keystore.jks
+
+      - name: Create key.properties
+        working-directory: ./budget/android
+        run: |
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
+          echo "storeFile=upload-keystore.jks" >> key.properties
+      # ----------------------------
 
       - name: Build Android APK
         working-directory: ./budget
         run: flutter build apk --release
 
-      # Update the path to include the 'budget' folder
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
