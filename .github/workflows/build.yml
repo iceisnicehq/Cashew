@@ -1,6 +1,5 @@
 name: Build and Release Cashew
 
-# This allows you to manually trigger the build from the GitHub Actions tab
 on:
   workflow_dispatch: 
 
@@ -25,23 +24,27 @@ jobs:
           flutter-version: '3.13.6'
           channel: 'stable'
 
+      # Tell the runner to look inside the 'budget' folder
       - name: Install dependencies
+        working-directory: ./budget
         run: flutter pub get
 
       - name: Build Android APK
+        working-directory: ./budget
         run: flutter build apk --release
 
+      # Update the path to include the 'budget' folder
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: cashew-custom-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: budget/build/app/outputs/flutter-apk/app-release.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: custom-build-${{ github.run_number }}
           name: Custom Cashew Build #${{ github.run_number }}
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: budget/build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
