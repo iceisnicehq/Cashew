@@ -974,26 +974,24 @@ class ProductsState extends State<Products> {
                                           },
                                         ),
                                   storeProducts[productIDs["lifetime"]] == null
-                                      ? SizedBox.shrink()
-                                      : SubscriptionOption(
-                                          label:
-                                              "lifetime".tr().capitalizeFirst,
-                                          price: storeProducts[
-                                                  productIDs["lifetime"]]!
-                                              .price,
-                                          extraPadding:
-                                              EdgeInsetsDirectional.only(
-                                                  bottom: 13 / 2),
-                                          onTap: () {
-                                            InAppPurchase.instance
-                                                .buyNonConsumable(
-                                              purchaseParam: PurchaseParam(
-                                                productDetails: storeProducts[
-                                                    productIDs["lifetime"]]!,
-                                              ),
-                                            );
-                                          },
-                                        ),
+                                  ? SizedBox.shrink()
+                                  : SubscriptionOption(
+                                      label: "lifetime".tr().capitalizeFirst,
+                                      price: storeProducts[productIDs["lifetime"]]!.price,
+                                      extraPadding: EdgeInsetsDirectional.only(bottom: 13 / 2),
+                                      onTap: () {
+                                        // Fake the purchase success locally
+                                        updateSettings(
+                                          "purchaseID", 
+                                          productIDs["lifetime"], // Hardcodes the lifetime ID
+                                          updateGlobalState: true, // Set this to true to force the UI to refresh immediately
+                                          pagesNeedingRefresh: [3]
+                                        );
+                                        
+                                        // Close the premium pop-up automatically
+                                        popRoute(context, true); 
+                                      },
+                                    ),
                                 ],
                               ),
                             ),
