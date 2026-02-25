@@ -27,7 +27,7 @@ import 'package:budget/widgets/openContainerNavigation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 bool premiumPopupEnabled = kIsWeb == false;
-bool tryStoreEnabled = kIsWeb == false && kDebugMode == false;
+bool tryStoreEnabled = kIsWeb == false;
 StreamSubscription<List<PurchaseDetails>>? purchaseListener;
 Map<String, ProductDetails> storeProducts = {};
 Map<String, String> productIDs = {
@@ -627,7 +627,7 @@ Future<Map<String, ProductDetails>> initializeStoreAndPurchases(
     final bool available = await InAppPurchase.instance.isAvailable();
     if (available) {
       //Reset any purchases if we can connect to the store, they will be restored if a purchase was made
-      updateSettings("purchaseID", null, updateGlobalState: false);
+      // updateSettings("purchaseID", null, updateGlobalState: false);
 
       Stream<List<PurchaseDetails>> purchaseUpdated =
           InAppPurchase.instance.purchaseStream;
