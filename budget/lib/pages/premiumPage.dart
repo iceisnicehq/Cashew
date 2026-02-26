@@ -27,7 +27,7 @@ import 'package:budget/widgets/openContainerNavigation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 bool premiumPopupEnabled = kIsWeb == false;
-bool tryStoreEnabled = false;
+bool tryStoreEnabled = kIsWeb == false && kDebugMode == false;
 StreamSubscription<List<PurchaseDetails>>? purchaseListener;
 Map<String, ProductDetails> storeProducts = {};
 Map<String, String> productIDs = {
@@ -622,49 +622,16 @@ void listenToPurchaseUpdated({
 
 Future<Map<String, ProductDetails>> initializeStoreAndPurchases(
     {required BuildContext context, required bool popRouteWithPurchase}) async {
-  if (tryStoreEnabled == true) {
-    print("Loading Store");
-    final bool available = await InAppPurchase.instance.isAvailable();
-    if (available) {
-      //Reset any purchases if we can connect to the store, they will be restored if a purchase was made
-      // updateSettings("purchaseID", null, updateGlobalState: false);
-
-      Stream<List<PurchaseDetails>> purchaseUpdated =
-          InAppPurchase.instance.purchaseStream;
-      purchaseListener?.cancel();
-      purchaseListener = purchaseUpdated.listen(
-        (purchaseDetailsList) {
-          listenToPurchaseUpdated(
-            purchaseDetailsList: purchaseDetailsList,
-            context: context,
-            popRouteWithPurchase: popRouteWithPurchase,
-          );
-        },
-        onDone: () {
-          purchaseListener?.cancel();
-          purchaseListener = null;
-        },
-        onError: (error) {
-          print(error);
-          purchaseListener = null;
-        },
-      );
-      final ProductDetailsResponse response = await InAppPurchase.instance
-          .queryProductDetails(productIDs.values.toSet());
-      if (response.notFoundIDs.isNotEmpty) {
-        print("Some products not found...");
-      } else {
-        storeProducts = {
-          for (var product in response.productDetails) product.id: product
-        };
-        print("Products Loaded");
-        print(storeProducts);
-      }
-      print("Restoring any purchases");
-      await InAppPurchase.instance.restorePurchases();
-      return storeProducts;
-    }
-  }
+  
+  // 1. Force the app to register a lifetime purchase permanently
+  updateSettings("purchaseID", productIDs["lifetime"], updateGlobalState: false);
+  
+  // 2. Disable the premium popups
+  premiumPopupEnabled = false;
+  
+  // 3. Return an empty map so the app doesn't try to load the real store
+  return {};
+}
 
   // Can't connect to store, don't show popup
   premiumPopupEnabled = false;
@@ -974,24 +941,26 @@ class ProductsState extends State<Products> {
                                           },
                                         ),
                                   storeProducts[productIDs["lifetime"]] == null
-                                  ? SizedBox.shrink()
-                                  : SubscriptionOption(
-                                      label: "lifetime".tr().capitalizeFirst,
-                                      price: storeProducts[productIDs["lifetime"]]!.price,
-                                      extraPadding: EdgeInsetsDirectional.only(bottom: 13 / 2),
-                                      onTap: () {
-                                        // Fake the purchase success locally
-                                        updateSettings(
-                                          "purchaseID", 
-                                          productIDs["lifetime"], // Hardcodes the lifetime ID
-                                          updateGlobalState: true, // Set this to true to force the UI to refresh immediately
-                                          pagesNeedingRefresh: [3]
-                                        );
-                                        
-                                        // Close the premium pop-up automatically
-                                        popRoute(context, true); 
-                                      },
-                                    ),
+                                      ? SizedBox.shrink()
+                                      : SubscriptionOption(
+                                          label:
+                                              "lifetime".tr().capitalizeFirst,
+                                          price: storeProducts[
+                                                  productIDs["lifetime"]]!
+                                              .price,
+                                          extraPadding:
+                                              EdgeInsetsDirectional.only(
+                                                  bottom: 13 / 2),
+                                          onTap: () {
+                                            InAppPurchase.instance
+                                                .buyNonConsumable(
+                                              purchaseParam: PurchaseParam(
+                                                productDetails: storeProducts[
+                                                    productIDs["lifetime"]]!,
+                                              ),
+                                            );
+                                          },
+                                        ),
                                 ],
                               ),
                             ),
