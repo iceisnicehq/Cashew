@@ -633,11 +633,6 @@ Future<Map<String, ProductDetails>> initializeStoreAndPurchases(
   return {};
 }
 
-  // Can't connect to store, don't show popup
-  premiumPopupEnabled = false;
-  return {};
-}
-
 Future restorePurchases(BuildContext context) async {
   if (storeProducts.isEmpty) {
     SnackBar snackBar = SnackBar(
